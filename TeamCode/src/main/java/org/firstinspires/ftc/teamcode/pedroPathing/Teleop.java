@@ -98,6 +98,7 @@ public class Teleop extends LinearOpMode {
         robot.backRight.setZeroPowerBehavior(BRAKE);
 
 
+        robot.aim.setZeroPowerBehavior(BRAKE);
         robot.launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.launcher.setZeroPowerBehavior(BRAKE);
         robot.launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
@@ -131,12 +132,12 @@ public class Teleop extends LinearOpMode {
                 double tx = result.getTx(); // How far left or right the target is (degrees)
                 double ty = result.getTy(); // How far up or down the target is (degrees)
                 double ta = result.getTa(); // How big the target looks (0%-100% of the image)
-                
+
 
                 telemetry.addData("Target X", tx);
                 telemetry.addData("Target Y", ty);
                 telemetry.addData("Target Area", ta);
-                
+
             } else {
                 telemetry.addData("Limelight", "No Targets");
             }
@@ -185,7 +186,7 @@ public class Teleop extends LinearOpMode {
 
 
             if (gamepad2.y) {
-                robot.launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+                robot.launcher.setVelocity(-LAUNCHER_TARGET_VELOCITY);
 
 
             } else if (gamepad2.b) { // stop flywheel
@@ -242,9 +243,11 @@ public class Teleop extends LinearOpMode {
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.MM), pos.getY(DistanceUnit.MM), pos.getHeading(AngleUnit.DEGREES));
             telemetry.addData("Position", data);
 
-            double targetAngle = Math.atan2(result.getTy(), result.getTy())/pos.getHeading(AngleUnit.DEGREES);
+            double targetAngle = Math.atan2(pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH))/pos.getHeading(AngleUnit.DEGREES);
             telemetry.addData("Target Angle", targetAngle);
             
+            
+
             telemetry.update();
 
 
