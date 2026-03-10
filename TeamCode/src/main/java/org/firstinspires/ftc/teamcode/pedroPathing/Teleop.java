@@ -47,9 +47,15 @@ public class Teleop extends LinearOpMode {
     final double goalX = 138;
     final double goalY = 138;
 
-    private ElapsedTime reverseTimer = new ElapsedTime();
-    private boolean isReversing = false;
-    private final double REVERSE_DURATION = 0.450; // 450 milliseconds
+    ElapsedTime reverseTimer = new ElapsedTime();
+    ElapsedTime feedTimer = new ElapsedTime();
+
+    boolean launchStarted = false;
+    boolean feeding = false;
+
+    final double REVERSE_DURATION = 0.45;
+    final double FEED_DURATION = 1.5;
+
 
 
 
@@ -235,18 +241,34 @@ public class Teleop extends LinearOpMode {
 
     void launchSequence() {
 
-        robot.launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
-        reverseTimer.start();
-        // Only feed if wheels are at 95% speed
-        if (robot.launcher.getVelocity() >= (LAUNCHER_TARGET_VELOCITY * 0.95) && reverseTimer >= REVERSE_DURATION) {
-            private ElapsedTime feedTime = new ElapsedTime();
-            feedTime.start();
-            private final double FEED_DURATION = 1.5;
-            if (feedTime >= REVERSE_DURATION && feedTime <= FEED_DURATION) {
+    // Start launcher
+    robot.launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+
+    // If this is the first loop after pressing Y, start timers
+    if (!launchStarted) {
+        reverseTimer.reset();
+        feedTimer.reset();
+        launchStarted = true;
+        feeding = false;
+    }
+
+    // Wait until launcher reaches 95% speed AND reverseTimer passes 0.45s
+    if (!feeding &&
+        robot.launcher.getVelocity() >= LAUNCHER_TARGET_VELOCITY * 0.95 &&
+        reverseTimer.seconds() >= REVERSE_DURATION) {
+
+        feeding = true;
+        feedTimer.reset();
+    }
+
+    // Run feeder for 1.5 seconds
+    if (feeding) {
+        if (feedTimer.seconds() <= FEED_DURATION) {
             robot.feeder.setVelocity(FEEDER_TARGET_VELOCITY);
         } else {
             robot.feeder.setVelocity(0);
         }
     }
 }
+
 }
