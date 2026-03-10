@@ -32,11 +32,11 @@ public class Teleop extends LinearOpMode {
 
 
 
-    double LAUNCHER_TARGET_VELOCITY = 1400;
+    double LAUNCHER_TARGET_VELOCITY = 1480;
 
     final double LAUNCHER_2ND = 1675;
 
-    final double LAUNCHER_MIN_VELOCITY = 1400;
+    final double LAUNCHER_MIN_VELOCITY = 1450;
 
     final double FEEDER_TARGET_VELOCITY = 5000;
     final double FEEDER_MIN_VELOCITY = 750;
@@ -122,10 +122,12 @@ public class Teleop extends LinearOpMode {
                 double tx = result.getTx(); // How far left or right the target is (degrees)
                 double ty = result.getTy(); // How far up or down the target is (degrees)
                 double ta = result.getTa(); // How big the target looks (0%-100% of the image)
+                double targetAngle = Math.atan2(ty, tx);
 
                 telemetry.addData("Target X", tx);
                 telemetry.addData("Target Y", ty);
                 telemetry.addData("Target Area", ta);
+                telemetry.addData("Target Angle", targetAngle);
             } else {
                 telemetry.addData("Limelight", "No Targets");
             }
@@ -172,7 +174,7 @@ public class Teleop extends LinearOpMode {
             robot.aim.setPower(gamepad2.right_stick_y*0.3);
 
 
-/*
+
             if (gamepad2.y) {
                 robot.launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
 
@@ -182,9 +184,9 @@ public class Teleop extends LinearOpMode {
 
             }
 
-       */
 
-            if (gamepad2.y) {
+
+        /*    if (gamepad2.y) {
                 launchSequence();
                     } else {
                         launchStarted = false;
@@ -192,7 +194,7 @@ public class Teleop extends LinearOpMode {
                         robot.launcher.setVelocity(0);
                         robot.feeder.setVelocity(0);
                     }
-
+*/
 
             if (gamepad2.x) {
                 robot.feeder.setVelocity(FEEDER_TARGET_VELOCITY);
@@ -201,13 +203,9 @@ public class Teleop extends LinearOpMode {
                 robot.feeder.setVelocity(STOP_SPEED);
             }
 
-           if (gamepad2.dpad_up) {
+            if (gamepad2.dpad_up) {
                 Reverse(450);
             }
-           else {
-               robot.feeder.setVelocity(STOP_SPEED);
-               robot.launcher.setVelocity(STOP_SPEED);
-           }
 
 
 
@@ -227,7 +225,7 @@ public class Teleop extends LinearOpMode {
                 LAUNCHER_TARGET_VELOCITY = LAUNCHER_MIN_VELOCITY;
             }
 
-            telemetry.addData("feedmotor_speed", robot.feeder.getCurrentPosition());
+            telemetry.addData("feedmotor_speed", robot.feeder.getVelocity());
             telemetry.addData("launcher_speed", robot.launcher.getVelocity());
             telemetry.update();
 
