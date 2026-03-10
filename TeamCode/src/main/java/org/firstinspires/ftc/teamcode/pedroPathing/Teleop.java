@@ -193,28 +193,15 @@ public class Teleop extends LinearOpMode {
                 robot.feeder.setVelocity(STOP_SPEED);
             }
 
-        /*    if (gamepad2.dpad_up) {
+           if (gamepad2.dpad_up) {
                 Reverse(450);
             }
-*/
-            // --- REVERSE LOGIC (Non-Blocking) ---
-            if (gamepad2.dpad_up && !isReversing) {
-                isReversing = true;
-                reverseTimer.reset();
-            }
+           else {
+               robot.feeder.setVelocity(STOP_SPEED);
+               robot.launcher.setVelocity(STOP_SPEED);
+           }
 
-            if (isReversing) {
-                if (reverseTimer.seconds() < REVERSE_DURATION) {
-                    // We are currently in the 450ms window
-                    robot.launcher.setVelocity(LAUNCHER_REVERSE);
-                    robot.feeder.setVelocity(FEEDER_REVERSE);
-                } else {
-                    // Time is up! Stop and reset
-                    robot.launcher.setVelocity(STOP_SPEED);
-                    robot.feeder.setVelocity(STOP_SPEED);
-                    isReversing = false;
-                }
-            }
+
 
             if (gamepad1.dpad_up) {
                 robot.turret.setPosition(0.6);//raises hood
