@@ -186,11 +186,13 @@ public class Teleop extends LinearOpMode {
 
             if (gamepad2.y) {
                 launchSequence();
-            }
-            else {
-                robot.launcher.setVelocity(STOP_SPEED);
-                robot.feeder.setVelocity(STOP_SPEED);
-            }
+                    } else {
+                        launchStarted = false;
+                        feeding = false;
+                        robot.launcher.setVelocity(0);
+                        robot.feeder.setVelocity(0);
+                    }
+
 
             if (gamepad2.x) {
                 robot.feeder.setVelocity(FEEDER_TARGET_VELOCITY);
