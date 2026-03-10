@@ -13,11 +13,15 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 @TeleOp(name = "Teleop")
 public class Teleop extends LinearOpMode {
@@ -98,6 +102,11 @@ public class Teleop extends LinearOpMode {
         robot.launcher.setZeroPowerBehavior(BRAKE);
         robot.launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
 
+
+        robot.pinpoint.setOffsets(0,-9.5, DistanceUnit.INCH);
+        robot.pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        robot.pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        robot.pinpoint.resetPosAndIMU();
         waitForStart();
 
 
@@ -227,7 +236,15 @@ public class Teleop extends LinearOpMode {
 
             telemetry.addData("feedmotor_speed", robot.feeder.getVelocity());
             telemetry.addData("launcher_speed", robot.launcher.getVelocity());
+
+
+            Pose2D pos = robot.pinpoint.getPosition();
+            String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.MM), pos.getY(DistanceUnit.MM), pos.getHeading(AngleUnit.DEGREES));
+            telemetry.addData("Position", data);
+
             telemetry.update();
+
+
 
         }
     }
