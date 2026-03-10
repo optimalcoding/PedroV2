@@ -236,11 +236,17 @@ public class Teleop extends LinearOpMode {
     void launchSequence() {
 
         robot.launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+        reverseTimer.start();
         // Only feed if wheels are at 95% speed
-        if (robot.launcher.getVelocity() >= (LAUNCHER_TARGET_VELOCITY * 0.95)) {
+        if (robot.launcher.getVelocity() >= (LAUNCHER_TARGET_VELOCITY * 0.95) && reverseTimer >= REVERSE_DURATION) {
+            private ElapsedTime feedTime = new ElapsedTime();
+            feedTime.start();
+            private final double FEED_DURATION = 1.5;
+            if (feedTime >= REVERSE_DURATION && feedTime <= FEED_DURATION) {
             robot.feeder.setVelocity(FEEDER_TARGET_VELOCITY);
         } else {
             robot.feeder.setVelocity(0);
         }
     }
+}
 }
