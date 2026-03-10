@@ -131,12 +131,12 @@ public class Teleop extends LinearOpMode {
                 double tx = result.getTx(); // How far left or right the target is (degrees)
                 double ty = result.getTy(); // How far up or down the target is (degrees)
                 double ta = result.getTa(); // How big the target looks (0%-100% of the image)
-                double targetAngle = Math.atan2(ty, tx);
+                
 
                 telemetry.addData("Target X", tx);
                 telemetry.addData("Target Y", ty);
                 telemetry.addData("Target Area", ta);
-                telemetry.addData("Target Angle", targetAngle);
+                
             } else {
                 telemetry.addData("Limelight", "No Targets");
             }
@@ -242,6 +242,9 @@ public class Teleop extends LinearOpMode {
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.MM), pos.getY(DistanceUnit.MM), pos.getHeading(AngleUnit.DEGREES));
             telemetry.addData("Position", data);
 
+            double targetAngle = Math.atan2(result.getTy(), result.getTy())/pos.getHeading(AngleUnit.DEGREES);
+            telemetry.addData("Target Angle", targetAngle);
+            
             telemetry.update();
 
 
