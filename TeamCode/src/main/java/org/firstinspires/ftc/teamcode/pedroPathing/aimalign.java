@@ -47,10 +47,22 @@ public class aimalign extends OpMode {
 
     @Override
     public void loop(){
-        LLResult result = limelight.getLatestResult();
-        //AprilTagDetection id24 = result.getTx();
 
-        aim.update(limelight.getLatestResult());
+        LLResult result = limelight.getLatestResult();
+        if (result != null) {
+            List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
+            for (LLResultTypes.FiducialResult fiducial : fiducials) {
+                int id = fiducial.getFiducialId(); // The ID number of the fiducial
+                double tx = result.getTx();
+
+                telemetry.addData("ID TAG", + id);
+                telemetry.addData("ID X-Axis", + tx);
+            }
+        }
+        else {
+            telemetry.addLine("No Tags");
+        }
+
 
         if (gamepad1.bWasPressed()) {
             increIndex = (increIndex + 1) % incre.length;
@@ -68,17 +80,7 @@ public class aimalign extends OpMode {
             aim.setkD(aim.getkD() - incre[increIndex] );
         }
 
-        if (result != null) {
-            List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
-            for (LLResultTypes.FiducialResult fiducial : fiducials) {
-                int id = fiducial.getFiducialId(); // The ID number of the fiducial
 
-                telemetry.addData("ID TAG", + id);
-            }
-        }
-        else {
-            telemetry.addLine("No Tags");
-        }
 
 
         telemetry.addLine("---------------------------------");
