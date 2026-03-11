@@ -19,7 +19,7 @@ public class Constants {
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(0)
+            .forwardPodY(0.5)
             .strafePodX(-9.5)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
