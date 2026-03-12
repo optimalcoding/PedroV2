@@ -9,6 +9,10 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 
 import java.util.List;
 
@@ -16,7 +20,7 @@ import java.util.List;
 
 public class aimalign extends OpMode {
 
-    private Limelight3A limelight;
+   
 
     private aimassist aim = new aimassist();
 
@@ -26,17 +30,11 @@ public class aimalign extends OpMode {
 
     @Override
     public void init(){
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-
-        telemetry.setMsTransmissionInterval(11);
-
-        limelight.pipelineSwitch(0);
-
-        /*
-         * Starts polling for data.
-         */
-        limelight.start();
         aim.init(hardwareMap);
+        robot.pinpoint.setOffsets(0,-9.5, DistanceUnit.INCH);
+        robot.pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        robot.pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        robot.pinpoint.resetPosAndIMU();
 
         telemetry.addLine("All Systems Ready");
     }
@@ -62,6 +60,15 @@ public class aimalign extends OpMode {
         else {
             telemetry.addLine("No Tags");
         }
+        
+        Pose2D pos = robot.pinpoint.getPosition();
+        String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.MM), pos.getY(DistanceUnit.MM), pos.getHeading(AngleUnit.DEGREES));
+        telemetry.addData("Position", data);
+
+        double targetAngle = Math.atan2(pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH))/pos.getHeading(AngleUnit.DEGREES);
+        telemetry.addData("Target Angle", targetAngle);
+        
+        
 
 
         if (gamepad1.bWasPressed()) {
