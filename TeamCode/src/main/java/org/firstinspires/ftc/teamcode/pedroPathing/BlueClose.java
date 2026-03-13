@@ -7,6 +7,7 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 @Autonomous
 
@@ -93,107 +94,96 @@ public class BlueClose extends OpMode {
     }
 
     public void autonomousPathUpdate() {
+        double t = pathTimer.getElapsedTimeSeconds();
+
         switch (pathState) {
-            case 0: // Preload
+            case 0: // Move to Preload
                 follower.followPath(scorePreload);
                 setPathState(1);
                 break;
 
-            case 1: // Scoring Preload
-                if (!follower.isBusy()) {
+            case 1: // Score Preload
+                // FIX: Added a timeout (3s) or !isBusy to ensure we don't get stuck
+                if (!follower.isBusy() || t > 3.0) {
                     runLaunchRoutine(2);
                 }
                 break;
 
-            case 2: // Move to Wait1 (Approach)
-                follower.followPath(row_one_move);
-                setPathState(3);
+            case 2: // Move to Wait1
+                if (!follower.isBusy()) {
+                    follower.followPath(row_one_move);
+                    setPathState(3);
+                }
                 break;
 
-            case 3: // Intake + Move to Pickup1
+            case 3: // Move to Pickup 1
                 if (!follower.isBusy()) {
-                    robot.intake.setVelocity(INTAKE_VEL);
-                    robot.feeder.setVelocity(FEEDER_VEL);
                     follower.followPath(getp1);
                     setPathState(4);
                 }
                 break;
 
-            case 4: // Dwell at Pickup1
-                if (!follower.isBusy()) {
-                    if (pathTimer.getElapsedTimeSeconds() > 0.5) {
-                        robot.intake.setVelocity(0);
-                        robot.feeder.setVelocity(0);
-                        follower.followPath(scorep1);
-                        setPathState(5);
-                    }
-                } else { pathTimer.resetTimer(); }
+            case 4: // Intake and Reverse Settle at Pickup 1
+                // Trigger based on distance or being "close enough"
+                if (!follower.isBusy() || t > 3.0) {
+                    runIntakeAndSettle(5, scorep1);
+                }
                 break;
 
-            case 5: // Scoring Pickup 1
-                if (!follower.isBusy()) {
+            case 5: // Score Pickup 1
+                if (!follower.isBusy() || t > 3.0) {
                     runLaunchRoutine(6);
                 }
                 break;
 
-            case 6: // Move to Wait2
-                follower.followPath(row_two_move);
-                setPathState(7);
+            case 6: // Move to Wait 2
+                if (!follower.isBusy()) {
+                    follower.followPath(row_two_move);
+                    setPathState(7);
+                }
                 break;
 
-            case 7: // Intake + Move to Pickup2
+            case 7: // Move to Pickup 2
                 if (!follower.isBusy()) {
-                    robot.intake.setVelocity(INTAKE_VEL);
-                    robot.feeder.setVelocity(FEEDER_VEL);
                     follower.followPath(getp2);
                     setPathState(8);
                 }
                 break;
 
-            case 8: // Dwell at Pickup2
-                if (!follower.isBusy()) {
-                    if (pathTimer.getElapsedTimeSeconds() > 0.5) {
-                        robot.intake.setVelocity(0);
-                        robot.feeder.setVelocity(0);
-                        follower.followPath(scorep2);
-                        setPathState(9);
-                    }
-                } else { pathTimer.resetTimer(); }
+            case 8: // Intake and Settle Pickup 2
+                if (!follower.isBusy() || t > 3.0) {
+                    runIntakeAndSettle(9, scorep2);
+                }
                 break;
 
-            case 9: // Scoring Pickup 2
-                if (!follower.isBusy()) {
+            case 9: // Score Pickup 2
+                if (!follower.isBusy() || t > 3.0) {
                     runLaunchRoutine(10);
                 }
                 break;
 
-            case 10: // Move to Wait3
-                follower.followPath(row_3_move);
-                setPathState(11);
+            case 10: // Move to Wait 3
+                if (!follower.isBusy()) {
+                    follower.followPath(row_3_move);
+                    setPathState(11);
+                }
                 break;
 
-            case 11: // Intake + Move to Pickup3
+            case 11: // Move to Pickup 3
                 if (!follower.isBusy()) {
-                    robot.intake.setVelocity(INTAKE_VEL);
-                    robot.feeder.setVelocity(FEEDER_VEL);
                     follower.followPath(getp3);
                     setPathState(12);
                 }
                 break;
 
-            case 12: // Dwell at Pickup3
-                if (!follower.isBusy()) {
-                    if (pathTimer.getElapsedTimeSeconds() > 0.5) {
-                        robot.intake.setVelocity(0);
-                        robot.feeder.setVelocity(0);
-                        follower.followPath(scorep3);
-                        setPathState(13);
-                    }
-                } else { pathTimer.resetTimer(); }
+            case 12: // Intake and Settle Pickup 3
+                if (!follower.isBusy() || t > 3.0) {
+                    runIntakeAndSettle(13, scorep3);
+                }
                 break;
 
             case 13: // Final Score
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() || t > 3.0) {
                     runLaunchRoutine(14);
                 }
                 break;
@@ -209,28 +199,41 @@ public class BlueClose extends OpMode {
 
     private void runLaunchRoutine(int nextState) {
         double t = pathTimer.getElapsedTimeSeconds();
-        if (t < 0.1) {
-            robot.launcher.setVelocity(-100);
-            robot.feeder.setVelocity(-FEEDER_VEL);
-        } else if (t < 0.3) {
-            robot.launcher.setVelocity(0);
-            robot.feeder.setVelocity(0);
-        } else if (t < 1.3) { // 1.0s Sleep
-            robot.launcher.setVelocity(LAUNCHER_VEL);
-        } else if (t < 1.8) { // 0.5s Sleep
-            robot.feeder.setVelocity(0);
-        } else if (t < 2.0) { // 0.2s Sleep
+        robot.launcher.setVelocity(-LAUNCHER_VEL);
+
+        // Turn on feeder/intake after launcher hits speed or safety timeout
+        if (Math.abs(robot.launcher.getVelocity()) >= (LAUNCHER_VEL * 0.9) || t > 1.2) {
             robot.intake.setVelocity(INTAKE_VEL);
-        } else if (t < 3.8) { // 1.8s Sleep
             robot.feeder.setVelocity(FEEDER_VEL);
-        } else {
-            // End of routine
+        }
+
+        // Increased duration to 4.0s to ensure everything clears the launcher
+        if (t > 4.0) {
             robot.launcher.setVelocity(0);
             robot.intake.setVelocity(0);
             robot.feeder.setVelocity(0);
             setPathState(nextState);
         }
     }
+
+    private void runIntakeAndSettle(int nextState, PathChain nextPath) {
+        double t = pathTimer.getElapsedTimeSeconds();
+
+        if (t < 1.5) { // Intake for 1.5 seconds
+            robot.intake.setVelocity(INTAKE_VEL);
+            robot.feeder.setVelocity(FEEDER_VEL);
+        } else if (t < 2.0) { // Reverse for 0.5 seconds to settle pixels
+            robot.intake.setVelocity(0);
+            robot.feeder.setVelocity(-FEEDER_VEL);
+        } else { // Finished
+            robot.intake.setVelocity(0);
+            robot.feeder.setVelocity(0);
+            follower.followPath(nextPath);
+            setPathState(nextState);
+        }
+    }
+
+
 
     public void setPathState(int pState) {
         pathState = pState;
@@ -251,6 +254,14 @@ public class BlueClose extends OpMode {
         robot.init(hardwareMap);
         buildPaths();
         follower.setStartingPose(startPose);
+        robot.frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.feeder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
 
 
     }
@@ -264,6 +275,8 @@ public class BlueClose extends OpMode {
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
         telemetry.addData("heading", follower.getPose().getHeading());
+        telemetry.addData("Launcher Pwr", robot.launcher.getPower());
+        telemetry.addData("Intake Pwr", robot.intake.getPower());
         telemetry.update();
 
     }
