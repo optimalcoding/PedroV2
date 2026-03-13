@@ -74,6 +74,9 @@ public class aimassist {
     public void resetTimer() {
         timer.reset();
     }
+    public double getCurrentAngle() {
+        return aim.getCurrentPosition() / TICKS_PER_DEGREE;
+    }
 
 
 
