@@ -282,6 +282,8 @@ public class BlueClose extends OpMode {
     @Override
     public void stop() {
         PoseStorage.currentPose = follower.getPose();
+        telemetry.addData("Auto Status", "Complete. Pose Saved.");
+        telemetry.update();
     }
 
 }
