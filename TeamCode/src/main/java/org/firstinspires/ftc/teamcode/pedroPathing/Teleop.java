@@ -108,6 +108,15 @@ public class Teleop extends LinearOpMode {
 
             follower.update();
             Pose pPose = follower.getPose();
+            double targetX, targetY;
+
+            if (pPose.getY() < 0) {
+                targetX = 138; // Red Goal X
+                targetY = 138; // Red Goal Y
+            } else {
+                targetX = 6;  // Blue Goal X
+                targetY = 138;  // Blue Goal Y
+            }
             Pose2D currentPos = new Pose2D(
                     DistanceUnit.INCH, pPose.getX(), pPose.getY(),
                     AngleUnit.DEGREES, Math.toDegrees(pPose.getHeading())
@@ -154,8 +163,7 @@ public class Teleop extends LinearOpMode {
             robot.intake.setPower(gamepad2.left_stick_y);
             robot.aim.setPower(gamepad2.right_stick_y*0.3);
 
-            aimHelper.update(currentPos, goalX, goalY);
-
+            aimHelper.update(currentPos, targetX, targetY);
 
 /*
             if (gamepad2.y) {
