@@ -13,15 +13,11 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 @TeleOp(name = "Teleop")
 public class Teleop extends LinearOpMode {
@@ -36,11 +32,11 @@ public class Teleop extends LinearOpMode {
 
 
 
-    double LAUNCHER_TARGET_VELOCITY = 1480;
+    double LAUNCHER_TARGET_VELOCITY = 1400;
 
     final double LAUNCHER_2ND = 1675;
 
-    final double LAUNCHER_MIN_VELOCITY = 1450;
+    final double LAUNCHER_MIN_VELOCITY = 1400;
 
     final double FEEDER_TARGET_VELOCITY = 5000;
     final double FEEDER_MIN_VELOCITY = 750;
@@ -51,15 +47,9 @@ public class Teleop extends LinearOpMode {
     final double goalX = 138;
     final double goalY = 138;
 
-    ElapsedTime reverseTimer = new ElapsedTime();
-    ElapsedTime feedTimer = new ElapsedTime();
-
-    boolean launchStarted = false;
-    boolean feeding = false;
-
-    final double REVERSE_DURATION = 0.45;
-    final double FEED_DURATION = 1.5;
-
+    private ElapsedTime reverseTimer = new ElapsedTime();
+    private boolean isReversing = false;
+    private final double REVERSE_DURATION = 0.450; // 450 milliseconds
 
 
 
@@ -76,11 +66,6 @@ public class Teleop extends LinearOpMode {
         robot.init(hardwareMap);
 
 
-        telemetry.setMsTransmissionInterval(11);
-
-        robot.limelight.pipelineSwitch(0);
-
-        robot.limelight.start();
 
 
 
@@ -98,50 +83,16 @@ public class Teleop extends LinearOpMode {
         robot.backRight.setZeroPowerBehavior(BRAKE);
 
 
-        robot.aim.setZeroPowerBehavior(BRAKE);
         robot.launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.launcher.setZeroPowerBehavior(BRAKE);
         robot.launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
 
-
-        robot.pinpoint.setOffsets(0,-9.5, DistanceUnit.INCH);
-        robot.pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        robot.pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
-        robot.pinpoint.resetPosAndIMU();
         waitForStart();
 
 
 
         while (opModeIsActive()) {
-            LLStatus status = robot.limelight.getStatus();
-            telemetry.addData("Name", "%s",
-                    status.getName());
-            telemetry.addData("LL", "Temp: %.1fC, CPU: %.1f%%, FPS: %d",
-                    status.getTemp(), status.getCpu(),(int)status.getFps());
-            telemetry.addData("Pipeline", "Index: %d, Type: %s",
-                    status.getPipelineIndex(), status.getPipelineType());
-
-
-
-            LLResult result = robot.limelight.getLatestResult();
-            if (result != null && result.isValid()) {
-                List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
-                for (LLResultTypes.FiducialResult fr : fiducialResults) {
-                    telemetry.addData("Fiducial", "ID: %d, Family: %s, X: %.2f, Y: %.2f", fr.getFiducialId(), fr.getFamily(), fr.getTargetXDegrees(), fr.getTargetYDegrees());
-                }
-                double tx = result.getTx(); // How far left or right the target is (degrees)
-                double ty = result.getTy(); // How far up or down the target is (degrees)
-                double ta = result.getTa(); // How big the target looks (0%-100% of the image)
-
-
-                telemetry.addData("Target X", tx);
-                telemetry.addData("Target Y", ty);
-                telemetry.addData("Target Area", ta);
-
-            } else {
-                telemetry.addData("Limelight", "No Targets");
-            }
-
+           
 
 
             telemetry.addData("Robot Cycle", robotCycle);
@@ -184,9 +135,9 @@ public class Teleop extends LinearOpMode {
             robot.aim.setPower(gamepad2.right_stick_y*0.3);
 
 
-
+/*
             if (gamepad2.y) {
-                robot.launcher.setVelocity(-LAUNCHER_TARGET_VELOCITY);
+                robot.launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
 
 
             } else if (gamepad2.b) { // stop flywheel
@@ -194,17 +145,15 @@ public class Teleop extends LinearOpMode {
 
             }
 
+       */
 
-
-        /*    if (gamepad2.y) {
+            if (gamepad2.y) {
                 launchSequence();
-                    } else {
-                        launchStarted = false;
-                        feeding = false;
-                        robot.launcher.setVelocity(0);
-                        robot.feeder.setVelocity(0);
-                    }
-*/
+            }
+            else {
+                robot.launcher.setVelocity(STOP_SPEED);
+                robot.feeder.setVelocity(STOP_SPEED);
+            }
 
             if (gamepad2.x) {
                 robot.feeder.setVelocity(FEEDER_TARGET_VELOCITY);
@@ -213,9 +162,13 @@ public class Teleop extends LinearOpMode {
                 robot.feeder.setVelocity(STOP_SPEED);
             }
 
-            if (gamepad2.dpad_up) {
+           if (gamepad2.dpad_up) {
                 Reverse(450);
             }
+           else {
+               robot.feeder.setVelocity(STOP_SPEED);
+               robot.launcher.setVelocity(STOP_SPEED);
+           }
 
 
 
@@ -235,22 +188,9 @@ public class Teleop extends LinearOpMode {
                 LAUNCHER_TARGET_VELOCITY = LAUNCHER_MIN_VELOCITY;
             }
 
-            telemetry.addData("feedmotor_speed", robot.feeder.getVelocity());
+            telemetry.addData("feedmotor_speed", robot.feeder.getCurrentPosition());
             telemetry.addData("launcher_speed", robot.launcher.getVelocity());
-
-
-            Pose2D pos = robot.pinpoint.getPosition();
-            String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.MM), pos.getY(DistanceUnit.MM), pos.getHeading(AngleUnit.DEGREES));
-            telemetry.addData("Position", data);
-
-            double targetAngle = Math.atan2(pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH))/pos.getHeading(AngleUnit.DEGREES);
-            telemetry.addData("Target Angle", targetAngle);
-            
-            
-
             telemetry.update();
-
-
 
         }
     }
@@ -264,34 +204,12 @@ public class Teleop extends LinearOpMode {
 
     void launchSequence() {
 
-    // Start launcher
-    robot.launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
-
-    // If this is the first loop after pressing Y, start timers
-    if (!launchStarted) {
-        reverseTimer.reset();
-        feedTimer.reset();
-        launchStarted = true;
-        feeding = false;
-    }
-
-    // Wait until launcher reaches 95% speed AND reverseTimer passes 0.45s
-    if (!feeding &&
-        robot.launcher.getVelocity() >= LAUNCHER_TARGET_VELOCITY * 0.95 &&
-        reverseTimer.seconds() >= REVERSE_DURATION) {
-
-        feeding = true;
-        feedTimer.reset();
-    }
-
-    // Run feeder for 1.5 seconds
-    if (feeding) {
-        if (feedTimer.seconds() <= FEED_DURATION) {
+        robot.launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+        // Only feed if wheels are at 95% speed
+        if (robot.launcher.getVelocity() >= (LAUNCHER_TARGET_VELOCITY * 0.95)) {
             robot.feeder.setVelocity(FEEDER_TARGET_VELOCITY);
         } else {
             robot.feeder.setVelocity(0);
         }
     }
-}
-
 }
