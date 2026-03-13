@@ -59,7 +59,7 @@ public class aimalign extends OpMode {
         );
 
         // Call aim assist update
-        aim.update(currentPos, 138, 138);
+        aim.update(currentPos, 10.084367245657566, 136.9925558312655);
 
         // Tuning controls
         if (gamepad1.b) {
