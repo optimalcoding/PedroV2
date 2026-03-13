@@ -18,9 +18,11 @@ public class BlueFar extends OpMode {
 
     private Robot robot = new Robot();
 
-    final double LAUNCHER_VEL = 1250;
+    final double LAUNCHER_VEL = 1675;
     final double FEEDER_VEL = -5000;
     final double INTAKE_VEL = -1250;
+    final double TURRET_MAX = 0.6;
+    final double TURRET_MIN = 0.2;
 
     private final Pose startPose = new Pose(56.53664596273291, 8.178881987577643, Math.toRadians(90));
     private final Pose scorePose = new Pose(61.71428571428571, 13.237267080745347, Math.toRadians(120));
@@ -120,6 +122,7 @@ public class BlueFar extends OpMode {
     private void runLaunchRoutine(int nextState) {
         double t = pathTimer.getElapsedTimeSeconds();
         if (t < 0.1) {
+            robot.turret.setPosition(0.6);
             robot.launcher.setVelocity(-100);
             robot.feeder.setVelocity(-FEEDER_VEL);
         } else if (t < 0.3) {
