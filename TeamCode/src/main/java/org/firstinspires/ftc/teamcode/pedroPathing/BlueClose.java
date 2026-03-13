@@ -280,6 +280,8 @@ public class BlueClose extends OpMode {
     }
     /** We do not use this because everything should automatically disable **/
     @Override
-    public void stop() {}
+    public void stop() {
+        PoseStorage.currentPose = follower.getPose();
+    }
 
 }
