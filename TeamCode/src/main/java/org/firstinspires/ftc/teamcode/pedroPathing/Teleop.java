@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -13,6 +15,9 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 
@@ -24,7 +29,8 @@ public class Teleop extends LinearOpMode {
 
 
 
-
+    private Follower follower;
+    private aimassist aimHelper = new aimassist();
     final double FEED_TIME_SECONDS = 0.20;
 
     Robot robot = new Robot();
@@ -65,6 +71,12 @@ public class Teleop extends LinearOpMode {
 
         robot.init(hardwareMap);
 
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(PoseStorage.currentPose);
+        aimHelper.init(hardwareMap);
+        telemetry.addData("Status", "Pose Loaded: " + PoseStorage.currentPose.toString());
+        telemetry.update();
+
 
 
 
@@ -88,11 +100,19 @@ public class Teleop extends LinearOpMode {
         robot.launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
 
         waitForStart();
+        aimHelper.resetTimer();
 
 
 
         while (opModeIsActive()) {
-           
+
+            follower.update();
+            Pose pPose = follower.getPose();
+            Pose2D currentPos = new Pose2D(
+                    DistanceUnit.INCH, pPose.getX(), pPose.getY(),
+                    AngleUnit.DEGREES, Math.toDegrees(pPose.getHeading())
+            );
+
 
 
             telemetry.addData("Robot Cycle", robotCycle);
@@ -133,6 +153,8 @@ public class Teleop extends LinearOpMode {
             robot.backRight.setPower(BackRightVal * 0.6);
             robot.intake.setPower(gamepad2.left_stick_y);
             robot.aim.setPower(gamepad2.right_stick_y*0.3);
+
+            aimHelper.update(currentPos, goalX, goalY);
 
 
 /*
@@ -190,6 +212,11 @@ public class Teleop extends LinearOpMode {
 
             telemetry.addData("feedmotor_speed", robot.feeder.getCurrentPosition());
             telemetry.addData("launcher_speed", robot.launcher.getVelocity());
+
+            telemetry.addData("X", "%.1f", pPose.getX());
+            telemetry.addData("Y", "%.1f", pPose.getY());
+            telemetry.addData("Heading", "%.1f°", Math.toDegrees(pPose.getHeading()));
+            telemetry.addData("Turret Angle", "%.1f°", aimHelper.getCurrentAngle());
             telemetry.update();
 
         }
