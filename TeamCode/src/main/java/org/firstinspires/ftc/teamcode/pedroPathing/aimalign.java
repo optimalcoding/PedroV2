@@ -29,7 +29,7 @@ public class aimalign extends OpMode {
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(0,0,0));
+        follower.setStartingPose(new Pose(47.424317617866,96.43672456575682,Math.toRadians(135)));
 
         aim.init(hardwareMap);
 
