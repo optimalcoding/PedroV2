@@ -111,11 +111,11 @@ public class Teleop extends LinearOpMode {
             double targetX, targetY;
 
             if (pPose.getY() < 0) {
-                targetX = 138; // Red Goal X
-                targetY = 138; // Red Goal Y
+                targetX = 132.64516129032256; // Red Goal X
+                targetY = 136.09925558312653; // Red Goal Y
             } else {
-                targetX = 6;  // Blue Goal X
-                targetY = 138;  // Blue Goal Y
+                targetX = 10.084367245657566;  // Blue Goal X
+                targetY = 136.9925558312655;  // Blue Goal Y
             }
             Pose2D currentPos = new Pose2D(
                     DistanceUnit.INCH, pPose.getX(), pPose.getY(),
