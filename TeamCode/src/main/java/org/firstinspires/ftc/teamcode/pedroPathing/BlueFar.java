@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 @Autonomous
 
-public class RedClose extends OpMode {
+public class BlueFar extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
