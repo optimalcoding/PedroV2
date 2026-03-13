@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -8,11 +10,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.pedropathing.geometry.Pose;
 
 import java.util.Locale;
 
 @TeleOp(name = "aimalign")
 public class aimalign extends OpMode {
+
+    private Follower follower;
 
     private aimassist aim = new aimassist();
     private GoBildaPinpointDriver pinpoint;
@@ -22,19 +28,12 @@ public class aimalign extends OpMode {
 
     @Override
     public void init() {
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(new Pose(0,0,0));
 
         aim.init(hardwareMap);
 
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setOffsets(0, -9.5, DistanceUnit.INCH);
-        pinpoint.setEncoderResolution(
-                GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD
-        );
-        pinpoint.setEncoderDirections(
-                GoBildaPinpointDriver.EncoderDirection.FORWARD,
-                GoBildaPinpointDriver.EncoderDirection.FORWARD
-        );
-        pinpoint.resetPosAndIMU();
+
 
         telemetry.addLine("All Systems Ready");
     }
@@ -47,26 +46,20 @@ public class aimalign extends OpMode {
     @Override
     public void loop() {
 
-        // Read odometry pose
-        Pose2D pos = pinpoint.getPosition();
+        follower.update(); // Pedro refreshes the Pinpoint data
 
-        String data = String.format(
-                Locale.US,
-                "{X: %.2f in, Y: %.2f in, H: %.2f°}",
-                pos.getX(DistanceUnit.INCH),
-                pos.getY(DistanceUnit.INCH),
-                pos.getHeading(AngleUnit.DEGREES)
+        // Get the official position from Pedro
+        Pose pedroPose = follower.getPose();
+        Pose2D currentPos = new Pose2D(
+                DistanceUnit.INCH,
+                pedroPose.getX(),
+                pedroPose.getY(),
+                AngleUnit.DEGREES,
+                Math.toDegrees(pedroPose.getHeading())
         );
-        telemetry.addData("Position", data);
-
-        // Example target angle telemetry (not used for control)
-        double dx = 138 - pos.getX(DistanceUnit.INCH);
-        double dy = 138 - pos.getY(DistanceUnit.INCH);
-        double targetAngle = Math.toDegrees(Math.atan2(dy, dx));
-        telemetry.addData("Target Angle", "%.2f°", targetAngle);
 
         // Call aim assist update
-        aim.update(pos, 138, 138);
+        aim.update(currentPos, 138, 138);
 
         // Tuning controls
         if (gamepad1.b) {
@@ -88,6 +81,11 @@ public class aimalign extends OpMode {
         if (gamepad1.dpad_down) {
             aim.setkD(aim.getkD() - incre[increIndex]);
         }
+
+        telemetry.addData("Robot Pos", String.format(Locale.US, "X: %.1f Y: %.1f H: %.1f",
+                currentPos.getX(DistanceUnit.INCH),
+                currentPos.getY(DistanceUnit.INCH),
+                currentPos.getHeading(AngleUnit.DEGREES)));
 
         // Telemetry
         telemetry.addLine("---------------------------------");
