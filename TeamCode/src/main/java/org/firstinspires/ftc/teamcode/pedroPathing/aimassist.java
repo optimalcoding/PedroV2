@@ -89,13 +89,14 @@ public class aimassist {
         double dx = goalX - pos.getX(DistanceUnit.INCH);
         double dy = goalY - pos.getY(DistanceUnit.INCH);
         double robotHeading = pos.getHeading(AngleUnit.DEGREES);
+        double safeTarget = Range.clip(targetTurretRelative, MIN_TURRET_ANGLE, MAX_TURRET_ANGLE);
 
         double targetAngleField = Math.toDegrees(Math.atan2(dy, dx));
         double targetTurretRelative = AngleUnit.normalizeDegrees(targetAngleField - robotHeading);
         double currentTurretAngle = aim.getCurrentPosition() / TICKS_PER_DEGREE;
 
 
-        double error = AngleUnit.normalizeDegrees(targetTurretRelative - currentTurretAngle);
+        double error = AngleUnit.normalizeDegrees(safeTarget - currentTurretAngle);
 
 
         double pTerm = error * kP;
@@ -109,6 +110,15 @@ public class aimassist {
         } else {
             aim.setPower(power);
         }
+        if (currentTurretAngle <= MIN_TURRET_ANGLE && error < 0) {
+            error = 0;
+        }
+        if (currentTurretAngle >= MAX_TURRET_ANGLE && error > 0) {
+            error = 0;
+        }
+
+        
+        
 
         lasterror = error;
 
