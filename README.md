@@ -1,3 +1,8 @@
+Full Android Studio Code file for FTC Decode Season
+
+Changes: Fundamental .java robot files transferred from other repos but using a different underlying autonomous guidance system (PedroPathing)
+
+
 ## NOTICE
 
 This repository contains the public FTC SDK for the DECODE (2025-2026) competition season.
